@@ -28,12 +28,12 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      chainId: 15337,
+      chainId: 1337,
       accounts: [
         {
           balance: "1000000000000000000",
           privateKey:
-            "0x6f5fa9a46a35347df7195d397b6be0c9c5431735c290888d7a9baa59c1eebe94",
+            "0xf92364f137d3825cb6b0d3fe2b3b1be352449905db907bd414bbe9a497a74584",
         },
       ],
     },

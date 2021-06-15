@@ -56,9 +56,13 @@ export const Token: React.FC<Props> = () => {
   const fetch = async () => {
     if (!token.instance) throw Error("Token instance not ready");
 
-    debugger;
+    await token.instance.attach("0x91d565327e7a93741303f1251308e36c75768b32");
 
-    await token.factory?.attach("0xFD17D219c7e3B999280CB29f293F6Ea5E34Eb0CE");
+    const [account] = await window.ethereum.request({
+      method: "eth_requestAccounts",
+    });
+    const balance = await token.instance?.balanceOf(account);
+    console.log("Balance: ", balance?.toString());
 
     const adress = await token.instance.address;
 
