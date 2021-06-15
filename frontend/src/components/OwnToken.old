@@ -1,0 +1,68 @@
+import React, { useContext, useEffect, useState } from "react";
+import { OwnToken } from "../hardhat/SymfoniContext";
+
+import { ethers } from "ethers";
+
+interface Props {}
+
+export const OwnToken: React.FC<Props> = () => {
+  const token = useContext(OwnTokenContext);
+
+  token.factory?.attach("0xdD92C79fB24721d79cF28E58B2E9E4b2Ba9512E5");
+
+  useEffect(() => {
+    const inFunc = async () => {
+      console.log("Token adress", token.instance?.address);
+
+      const tokenSigner = await token.factory?.signer.getAddress();
+      console.log("Token signer is", tokenSigner);
+    };
+
+    inFunc();
+  }, [token]);
+
+  const [userAccount, setUserAccount] = useState("");
+  const [amount, setAmount] = useState(0);
+
+  async function requestAccount() {
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+  }
+
+  async function getBalance() {
+    if (typeof window.ethereum !== "undefined") {
+      const [account] = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      const balance = await token.instance?.balanceOf(account);
+      console.log("Balance: ", balance?.toString());
+    }
+  }
+
+  async function sendCoins() {
+    if (typeof window.ethereum !== "undefined") {
+      await requestAccount();
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const transaction = await token.instance?.transfer(userAccount, amount);
+      await transaction?.wait();
+      console.log(`${amount} Coins successfully sent to ${userAccount}`);
+    }
+  }
+
+  return (
+    <>
+      <div>
+        <button onClick={getBalance}>Get Balance</button>
+        <button onClick={sendCoins}>Send Coins</button>
+        <input
+          onChange={(e) => setUserAccount(e.target.value)}
+          placeholder="Account ID"
+        />
+        <input
+          onChange={(e) => setAmount(parseInt(e.target.value))}
+          placeholder="Amount"
+        />
+      </div>
+    </>
+  );
+};
