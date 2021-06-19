@@ -3,9 +3,10 @@
 //
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-const hre = require("hardhat");
 
-async function main() {
+import { ethers } from "hardhat";
+
+async function deployToken() {
   // Hardhat always runs the compile task when running scripts with its command
   // line interface.
   //
@@ -13,12 +14,14 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
-  const [deployer] = await hre.ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
 
   console.log("Deploying contracts with the account:", deployer.address);
 
-  const Token = await hre.ethers.getContractFactory("Token");
-  const token = await Token.deploy(10000);
+  const totalSupply = BigInt(1000 * 10 ** 18);
+
+  const Token = await ethers.getContractFactory("Token");
+  const token = await Token.deploy(totalSupply);
 
   await token.deployed();
 
@@ -27,7 +30,7 @@ async function main() {
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main()
+deployToken()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);

@@ -15,18 +15,26 @@ async function mainz() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
+  const Binance = "0x287f5877CBE9eABC5B48024c4ab1E43D8b156C86";
+  const Test = "0x19706EE4fC287787109471c2d4655096B56375cd";
+  const TokenSmartContract = "0xEFD6399D26e88689e798c4E178814f08969D2Ba2";
+
   await deployments.fixture(["Token"]);
 
-  const { tokenOwner } = await getNamedAccounts();
+  const Token = await ethers.getContractAt("Token", TokenSmartContract);
 
-  const Token = await ethers.getContractAt(
-    "Token",
-    "0x7C3e3169d3F50F7c71Ee9fB4fB9431e07cDe1620"
-  );
-  const test = await Token.totalSupply();
+  const name = await Token.name();
+  const symbol = await Token.symbol();
+  const totalSupply = await Token.totalSupply();
+  const balance = await Token.balanceOf(Binance);
+  const balance2 = await Token.balanceOf(Test);
 
-  console.log("Token supply:", test);
-  console.log("Token owner", tokenOwner);
+  await Token.transfer(Test, BigInt(200 * 10 ** 18));
+
+  console.log("Token:", `${name} (${symbol})`);
+  console.log("Token supply:", totalSupply);
+  console.log("Balance Binance", balance);
+  console.log("Balance Test", balance2);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
