@@ -3,70 +3,63 @@ import { TokenContext } from "./../hardhat/SymfoniContext";
 
 interface Props {}
 
+const decimals = 18;
+const TokenSmartContractAddress = "0xEFD6399D26e88689e798c4E178814f08969D2Ba2";
+
+const toWholeCoins: (number: number) => bigint = (num: number) => {
+  return BigInt(num * 10 ** decimals);
+};
+
+const fromWholeCoins: (number: number) => number = (num: number) => {
+  return num / 10 ** decimals;
+};
+
 export const Token: React.FC<Props> = () => {
-  const token = useContext(TokenContext);
+  const tokenContext = useContext(TokenContext);
+
+  const [token, setToken] = useState<any>(null);
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
-  const [tokenAddress, setTokenAddress] = useState("0x");
+  const [balance, setBalance] = useState(0);
+  const [tokenAddress, setTokenAddress] = useState("0x000000000000000000");
+  const [sendBalance, setSendBalance] = useState(0);
+  const [sendAddress, setSendAddress] = useState("0x000000000000000000");
 
   useEffect(() => {
-    token.factory?.attach("0x02AbA425f25e6Ab7d9C3e40F6b1c140ff4C617a2");
-
     const doAsync = async () => {
-      if (!token.instance) return;
+      if (!tokenContext.instance) return;
 
-      setTokenAddress(token.instance.address);
-      console.log("Token is deployed at ", token.instance.address);
+      const tokenInstance = await tokenContext.instance.attach(
+        TokenSmartContractAddress
+      );
 
-      //const tokenName = await token.instance.name();
-      //setName(tokenName);
-
-      //setName(await token.instance.name());
-      // setSymbol(await token.instance.symbol());
+      setToken(tokenInstance);
+      setTokenAddress(tokenInstance.address);
+      setName(await tokenInstance.name());
+      setSymbol(await tokenInstance.symbol());
     };
     doAsync();
-  }, [token]);
+  }, [tokenContext]);
 
-  const handleMint = async (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    e.preventDefault();
-
-    if (!token.instance) throw Error("Token instance not ready");
-
-    const tx = await token.factory?.deploy(44444);
-
-    if (!tx) {
-      console.error("No TX!");
-      return;
-    }
-
-    console.log("Deploy token tx", tx);
-
-    // await tx.wait();
-
-    const name = await tx.name();
-    const adress = await tx.address;
-    console.log("New name: ", name);
-
-    setName(name);
-    setTokenAddress(adress);
-  };
-
-  const fetch = async () => {
-    if (!token.instance) throw Error("Token instance not ready");
-
-    await token.instance.attach("0x91d565327e7a93741303f1251308e36c75768b32");
+  const fetchBalance = async () => {
+    if (!tokenContext.instance || !token) return;
 
     const [account] = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
-    const balance = await token.instance?.balanceOf(account);
-    console.log("Balance: ", balance?.toString());
 
-    const adress = await token.instance.address;
+    const balance = await token.balanceOf(account);
+    setBalance(fromWholeCoins(balance));
+  };
 
-    setTokenAddress(adress);
+  const transfer = async () => {
+    if (!tokenContext.instance || !token) return;
+
+    const [account] = await window.ethereum.request({
+      method: "eth_requestAccounts",
+    });
+
+    token.transfer(sendAddress, toWholeCoins(sendBalance));
   };
 
   return (
@@ -76,12 +69,42 @@ export const Token: React.FC<Props> = () => {
           Name: {name}
           <br />
           Symbol: {symbol}
+          <br />
+          Contract adress: {tokenAddress}
         </p>
 
-        <p>Token adress: {tokenAddress}</p>
+        <p>
+          <button onClick={fetchBalance}>Fetch balance</button>
+          <br />
+          Your balance: {balance}
+        </p>
 
-        <button onClick={handleMint}>MINT</button>
-        <button onClick={fetch}>Fetch</button>
+        <h2>Transfer</h2>
+        <form onSubmit={transfer}>
+          <p>
+            <label htmlFor="sendBalance">Balance</label>
+            <br />
+            <input
+              type="number"
+              name="sendBalance"
+              id="sendBalance"
+              onChange={(e) => setSendBalance(parseInt(e.target.value))}
+            />
+          </p>
+
+          <p>
+            <label htmlFor="sendAddress">Adress</label>
+            <br />
+            <input
+              type="text"
+              name="sendAddress"
+              id="sendAddress"
+              onChange={(e) => setSendAddress(e.target.value)}
+            />
+            <br />
+            <button type="submit">Send</button>
+          </p>
+        </form>
       </div>
     </>
   );

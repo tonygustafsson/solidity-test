@@ -10,8 +10,6 @@ function App() {
     <div className="App">
       <header className="App-header">
         <Symfoni autoInit={true}>
-          <Greeter />
-          <hr />
           <Token />
         </Symfoni>
       </header>
