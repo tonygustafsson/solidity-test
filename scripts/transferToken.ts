@@ -7,7 +7,17 @@
 
 import { ethers, deployments, getNamedAccounts } from "hardhat";
 
-async function mainz() {
+const decimals = 18;
+
+const toWholeCoins: (number) => bigint = (num: number) => {
+  return BigInt(num * 10 ** decimals);
+};
+
+const fromWholeCoins: (number) => number = (num: number) => {
+  return num / 10 ** decimals;
+};
+
+async function transferToken() {
   // Hardhat always runs the compile task when running scripts with its command
   // line interface.
   //
@@ -23,23 +33,20 @@ async function mainz() {
 
   const Token = await ethers.getContractAt("Token", TokenSmartContract);
 
-  const name = await Token.name();
-  const symbol = await Token.symbol();
-  const totalSupply = await Token.totalSupply();
-  const balance = await Token.balanceOf(Binance);
-  const balance2 = await Token.balanceOf(Test);
+  const balanceBinance = await Token.balanceOf(Binance);
+  const balanceTest = await Token.balanceOf(Test);
 
-  await Token.transfer(Test, BigInt(200 * 10 ** 18));
+  await Token.approve(Test, toWholeCoins(10000));
+  await Token.approve(Binance, toWholeCoins(10000));
+  await Token.transferFrom(Binance, Test, toWholeCoins(10));
 
-  console.log("Token:", `${name} (${symbol})`);
-  console.log("Token supply:", totalSupply);
-  console.log("Balance Binance", balance);
-  console.log("Balance Test", balance2);
+  console.log(`Token Balance Binance: ${fromWholeCoins(balanceBinance)}`);
+  console.log(`Token Balance Test: ${fromWholeCoins(balanceTest)}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-mainz()
+transferToken()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
