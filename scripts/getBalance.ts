@@ -3,9 +3,11 @@
 //
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-const hre = require("hardhat");
+//const hre = require("hardhat");
 
-async function main() {
+import { ethers, deployments, getNamedAccounts } from "hardhat";
+
+async function mainz() {
   // Hardhat always runs the compile task when running scripts with its command
   // line interface.
   //
@@ -13,29 +15,23 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
-  const [deployer] = await hre.ethers.getSigners();
+  await deployments.fixture(["Token"]);
 
-  console.log("Deploying contracts with the account:", deployer.address);
+  const { tokenOwner } = await getNamedAccounts();
 
-  // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  const Token = await ethers.getContractAt(
+    "Token",
+    "0x7C3e3169d3F50F7c71Ee9fB4fB9431e07cDe1620"
+  );
+  const test = await Token.totalSupply();
 
-  await greeter.deployed();
-
-  console.log("Greeter deployed to:", greeter.address);
-
-  const Token = await hre.ethers.getContractFactory("Token");
-  const token = await Token.deploy(10000);
-
-  await token.deployed();
-
-  console.log("Token deployed to:", token.address);
+  console.log("Token supply:", test);
+  console.log("Token owner", tokenOwner);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main()
+mainz()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
